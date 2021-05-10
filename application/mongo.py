@@ -1,10 +1,13 @@
 """Module for handling the motor mongo package code."""
-from typing import Any, Dict, List
+import os
+from typing import Any, Dict, List, Optional
 
 import motor.motor_asyncio
 
 DB = "books"
 COLLECTION = "books"
+
+BACKEND: Optional["MongoBackend"] = None
 
 
 class MongoBackend:
@@ -29,3 +32,8 @@ class MongoBackend:
 
     async def delete_one_book(self, book_id: str) -> None:
         await self._client[DB][COLLECTION].delete_one({"book_id": book_id})
+
+
+def backend():
+    global BACKEND
+    BACKEND = MongoBackend(uri=os.getenv("MONGODB_URI"))

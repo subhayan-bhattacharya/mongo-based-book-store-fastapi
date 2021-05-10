@@ -1,4 +1,5 @@
 fastapi
-python-dotenv
-motor
 uvicorn
+motor
+# Non essential
+python-dotenv

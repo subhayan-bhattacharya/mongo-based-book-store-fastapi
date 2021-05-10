@@ -14,11 +14,6 @@ router = APIRouter()
 
 
 @functools.lru_cache()
-def mongo_backend():
-    return mongo.MongoBackend(uri=os.getenv("MONGODB_URI"))
-
-
-@functools.lru_cache()
 def base_uri():
     return os.getenv("BASE_URI")
 
@@ -31,25 +26,22 @@ def add_hyper_link_to_book(book: Dict[str, Any]) -> Dict[str, Any]:
 
 
 @router.get("/books")
-async def get_all_books() -> List[Dict[str, Any]]:
-    backend = mongo_backend()
-    all_books = [add_hyper_link_to_book(book) for book in await backend.get_all_books()]
+async def get_the_list_of_all_books() -> List[Dict[str, Any]]:
+    all_books = [add_hyper_link_to_book(book) for book in await mongo.BACKEND.get_all_books()]
     return all_books
 
 
 @router.post("/books", status_code=201)
 async def add_a_book(book: models.Book) -> List[Dict[str, Any]]:
-    backend = mongo_backend()
     book_to_insert = book.dict()
     book_to_insert["book_id"] = str(uuid.uuid1())
-    await backend.insert_one_book(data=book_to_insert)
-    return [add_hyper_link_to_book(book) for book in await backend.get_all_books()]
+    await mongo.BACKEND.insert_one_book(data=book_to_insert)
+    return [add_hyper_link_to_book(book) for book in await mongo.BACKEND.get_all_books()]
 
 
 @router.get("/book/{book_id}")
 async def get_a_single_book(book_id: str) -> Dict[str, Any]:
-    backend = mongo_backend()
-    book = await backend.get_single_book(book_id=book_id)
+    book = await mongo.BACKEND.get_single_book(book_id=book_id)
     if book is None:
         return {"message": "No such book exist!!"}
     return add_hyper_link_to_book(book)
@@ -57,18 +49,16 @@ async def get_a_single_book(book_id: str) -> Dict[str, Any]:
 
 @router.put("/book/{book_id}")
 async def update_a_book(book_id: str, book: models.Book) -> Dict[str, Any]:
-    backend = mongo_backend()
-    book_in_db = await backend.get_single_book(book_id=book_id)
+    book_in_db = await mongo.BACKEND.get_single_book(book_id=book_id)
     if book_in_db is None:
         return {"message": "No such book exist!!"}
-    await backend.update_one_book(book_id=book_id, data=book.dict())
-    return add_hyper_link_to_book(await backend.get_single_book(book_id=book_id))
+    await mongo.BACKEND.update_one_book(book_id=book_id, data=book.dict())
+    return add_hyper_link_to_book(await mongo.BACKEND.get_single_book(book_id=book_id))
 
 
 @router.delete("/book/{book_id}")
 async def delete_a_book(book_id: str) -> Dict[str, Any]:
-    backend = mongo_backend()
-    if await backend.get_single_book(book_id=book_id) is None:
+    if await mongo.BACKEND.get_single_book(book_id=book_id) is None:
         return {"message": "No such book exist!!"}
-    await backend.delete_one_book(book_id=book_id)
+    await mongo.BACKEND.delete_one_book(book_id=book_id)
     return {"message": "Book deleted !!"}
