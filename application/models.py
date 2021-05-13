@@ -9,7 +9,7 @@ class Book(BaseModel):
     name: str
     author: str
     published_year: datetime
-    genre: List[str]
+    genres: List[str]
 
     @validator("published_year", pre=True)
     def parse_birthdate(cls, value: Union[str, int]):
