@@ -27,6 +27,14 @@ class MongoBackend:
         cursor = self._client[DB][BOOKS_COLLECTION].find({}, {"_id": 0})
         return [doc async for doc in cursor]
 
+    async def get_all_authors(self) -> List[Dict[str, Any]]:
+        cursor = self._client[DB][AUTHORS_COLLECTION].find({}, {"_id": 0})
+        return [doc async for doc in cursor]
+
+    async def get_all_genres(self) -> List[Dict[str, Any]]:
+        cursor = self._client[DB][GENRES_COLLECTION].find({}, {"_id": 0})
+        return [doc async for doc in cursor]
+
     async def get_single_book_by_id(self, book_id: str) -> Dict[str, Any]:
         return await self._client[DB][BOOKS_COLLECTION].find_one(
             {"book_id": book_id}, {"_id": 0}

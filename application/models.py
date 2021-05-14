@@ -8,6 +8,7 @@ from pydantic import BaseModel, validator
 class Book(BaseModel):
     name: str
     author: str
+    description: str
     published_year: datetime
     genres: List[str]
 
