@@ -45,9 +45,11 @@ async def get_all_authors() -> List[Dict[str, Any]]:
 
 @router.get("/books")
 async def get_the_list_of_all_books(
-    authors: Optional[str] = None, genres: Optional[str] = None
+    authors: Optional[str] = None,
+    genres: Optional[str] = None,
+    published_year: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
-    if authors is None and genres is None:
+    if authors is None and genres is None and published_year is None:
         all_books = [
             _shorten_book_details(book) for book in await mongo.BACKEND.get_all_books()
         ]
@@ -57,6 +59,9 @@ async def get_the_list_of_all_books(
             for book in await mongo.BACKEND.get_all_books(
                 authors=authors.strip('"').split(",") if authors is not None else None,
                 genres=genres.strip('"').split(",") if genres is not None else None,
+                published_year=datetime.strptime(published_year, "%Y")
+                if published_year is not None
+                else None,
             )
         ]
 

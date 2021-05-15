@@ -2,6 +2,7 @@
 import contextlib
 import os
 from typing import Any, Dict, List, Optional
+from datetime import datetime
 
 import motor.motor_asyncio
 from pymongo.errors import DuplicateKeyError
@@ -24,13 +25,18 @@ class MongoBackend:
         self._client = motor.motor_asyncio.AsyncIOMotorClient(uri)
 
     async def get_all_books(
-        self, authors: Optional[List[str]] = None, genres: Optional[List[str]] = None
+        self,
+        authors: Optional[List[str]] = None,
+        genres: Optional[List[str]] = None,
+        published_year: Optional[datetime] = None,
     ) -> List[Dict[str, Any]]:
         find_condition = {}
         if authors is not None:
             find_condition["author"] = {"$in": authors}
         if genres is not None:
             find_condition["genres"] = {"$in": genres}
+        if published_year is not None:
+            find_condition["published_year"] = published_year
         cursor = self._client[DB][BOOKS_COLLECTION].find(find_condition, {"_id": 0})
         return [doc async for doc in cursor]
 
