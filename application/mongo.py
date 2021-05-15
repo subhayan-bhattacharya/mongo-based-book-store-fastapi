@@ -23,8 +23,15 @@ class MongoBackend:
     def __init__(self, uri: str) -> None:
         self._client = motor.motor_asyncio.AsyncIOMotorClient(uri)
 
-    async def get_all_books(self) -> List[Dict[str, Any]]:
-        cursor = self._client[DB][BOOKS_COLLECTION].find({}, {"_id": 0})
+    async def get_all_books(
+        self, authors: Optional[List[str]] = None, genres: Optional[List[str]] = None
+    ) -> List[Dict[str, Any]]:
+        find_condition = {}
+        if authors is not None:
+            find_condition["author"] = {"$in": authors}
+        if genres is not None:
+            find_condition["genres"] = {"$in": genres}
+        cursor = self._client[DB][BOOKS_COLLECTION].find(find_condition, {"_id": 0})
         return [doc async for doc in cursor]
 
     async def get_all_authors(self) -> List[Dict[str, Any]]:

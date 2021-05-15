@@ -3,7 +3,7 @@ import functools
 import os
 import uuid
 from datetime import datetime
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Response, status
 
@@ -27,27 +27,39 @@ def _modify_book_details(book: Dict[str, Any]) -> Dict[str, Any]:
 
 def _shorten_book_details(book: Dict[str, Any]) -> Dict[str, Any]:
     return {
-        'name': book.get("name"),
-        'author': book.get("author"),
-        '_link': f"{base_uri()}book/{book.get('book_id')}"
+        "name": book.get("name"),
+        "author": book.get("author"),
+        "_link": f"{base_uri()}book/{book.get('book_id')}",
     }
 
 
 @router.get("/authors")
 async def get_all_authors() -> List[Dict[str, Any]]:
-    return [doc['name'] for doc in await mongo.BACKEND.get_all_authors()]
+    return [doc["name"] for doc in await mongo.BACKEND.get_all_authors()]
 
 
 @router.get("/genres")
 async def get_all_authors() -> List[Dict[str, Any]]:
-    return [doc['name'] for doc in await mongo.BACKEND.get_all_genres()]
+    return [doc["name"] for doc in await mongo.BACKEND.get_all_genres()]
 
 
 @router.get("/books")
-async def get_the_list_of_all_books() -> List[Dict[str, Any]]:
-    all_books = [
-        _shorten_book_details(book) for book in await mongo.BACKEND.get_all_books()
-    ]
+async def get_the_list_of_all_books(
+    authors: Optional[str] = None, genres: Optional[str] = None
+) -> List[Dict[str, Any]]:
+    if authors is None and genres is None:
+        all_books = [
+            _shorten_book_details(book) for book in await mongo.BACKEND.get_all_books()
+        ]
+    else:
+        all_books = [
+            _shorten_book_details(book)
+            for book in await mongo.BACKEND.get_all_books(
+                authors=authors.strip('"').split(",") if authors is not None else None,
+                genres=genres.strip('"').split(",") if genres is not None else None,
+            )
+        ]
+
     return all_books
 
 
@@ -88,7 +100,9 @@ async def update_a_book(
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {"message": "No such book exist!!"}
     await mongo.BACKEND.update_one_book(book_id=book_id, data=book.dict())
-    return _modify_book_details(await mongo.BACKEND.get_single_book_by_id(book_id=book_id))
+    return _modify_book_details(
+        await mongo.BACKEND.get_single_book_by_id(book_id=book_id)
+    )
 
 
 @router.delete("/book/{book_id}")
