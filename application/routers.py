@@ -1,6 +1,4 @@
 """Module for containing the routes for the application."""
-import functools
-import os
 import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
@@ -13,26 +11,6 @@ import application.mongo as mongo
 router = APIRouter()
 
 
-@functools.lru_cache()
-def base_uri():
-    return os.getenv("BASE_URI")
-
-
-def _modify_book_details(book: Dict[str, Any]) -> Dict[str, Any]:
-    book_id = book.pop("book_id")
-    book["_link"] = f"{base_uri()}book/{book_id}"
-    book["published_year"] = datetime.strftime(book["published_year"], "%Y")
-    return book
-
-
-def _shorten_book_details(book: Dict[str, Any]) -> Dict[str, Any]:
-    return {
-        "name": book.get("name"),
-        "author": book.get("author"),
-        "_link": f"{base_uri()}book/{book.get('book_id')}",
-    }
-
-
 @router.get("/authors")
 async def get_all_authors() -> List[Dict[str, Any]]:
     return [doc["name"] for doc in await mongo.BACKEND.get_all_authors()]
@@ -43,19 +21,17 @@ async def get_all_authors() -> List[Dict[str, Any]]:
     return [doc["name"] for doc in await mongo.BACKEND.get_all_genres()]
 
 
-@router.get("/books")
+@router.get("/books", response_model=List[models.AllBooksResponse])
 async def get_the_list_of_all_books(
     authors: Optional[str] = None,
     genres: Optional[str] = None,
     published_year: Optional[str] = None,
 ) -> List[Dict[str, Any]]:
     if authors is None and genres is None and published_year is None:
-        all_books = [
-            _shorten_book_details(book) for book in await mongo.BACKEND.get_all_books()
-        ]
+        all_books = [book for book in await mongo.BACKEND.get_all_books()]
     else:
         all_books = [
-            _shorten_book_details(book)
+            book
             for book in await mongo.BACKEND.get_all_books(
                 authors=authors.strip('"').split(",") if authors is not None else None,
                 genres=genres.strip('"').split(",") if genres is not None else None,
@@ -68,7 +44,7 @@ async def get_the_list_of_all_books(
     return all_books
 
 
-@router.post("/books", status_code=201)
+@router.post("/books", response_model=models.SingleBookResponse, status_code=201)
 async def add_a_book(book: models.Book, response: Response) -> Dict[str, Any]:
     book_to_insert = book.dict()
     book_to_insert["book_id"] = str(uuid.uuid1())
@@ -82,21 +58,19 @@ async def add_a_book(book: models.Book, response: Response) -> Dict[str, Any]:
     await mongo.BACKEND.insert_authors_in_db(book_to_insert.get("author"))
     await mongo.BACKEND.insert_genres_in_db(book_to_insert.get("genres"))
 
-    return _modify_book_details(
-        await mongo.BACKEND.get_single_book_by_name(book_to_insert.get("name"))
-    )
+    return await mongo.BACKEND.get_single_book_by_name(book_to_insert.get("name"))
 
 
-@router.get("/book/{book_id}")
+@router.get("/book/{book_id}", response_model=models.SingleBookResponse)
 async def get_a_single_book(book_id: str, response: Response) -> Dict[str, Any]:
     book = await mongo.BACKEND.get_single_book_by_id(book_id=book_id)
     if book is None:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {"message": "No such book exist!!"}
-    return _modify_book_details(book)
+    return book
 
 
-@router.put("/book/{book_id}")
+@router.put("/book/{book_id}", response_model=models.SingleBookResponse)
 async def update_a_book(
     book_id: str, book: models.Book, response: Response
 ) -> Dict[str, Any]:
@@ -105,9 +79,7 @@ async def update_a_book(
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {"message": "No such book exist!!"}
     await mongo.BACKEND.update_one_book(book_id=book_id, data=book.dict())
-    return _modify_book_details(
-        await mongo.BACKEND.get_single_book_by_id(book_id=book_id)
-    )
+    return await mongo.BACKEND.get_single_book_by_id(book_id=book_id)
 
 
 @router.delete("/book/{book_id}")

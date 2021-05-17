@@ -1,8 +1,8 @@
 """Module for handling the motor mongo package code."""
 import contextlib
 import os
-from typing import Any, Dict, List, Optional
 from datetime import datetime
+from typing import Any, Dict, List, Optional
 
 import motor.motor_asyncio
 from pymongo.errors import DuplicateKeyError
