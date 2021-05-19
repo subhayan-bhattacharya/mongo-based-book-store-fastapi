@@ -24,12 +24,12 @@ class MongoBackend:
     def __init__(self, uri: str) -> None:
         self._client = motor.motor_asyncio.AsyncIOMotorClient(uri)
 
-    async def get_all_books(
-        self,
+    @staticmethod
+    def get_find_condition(
         authors: Optional[List[str]] = None,
         genres: Optional[List[str]] = None,
         published_year: Optional[datetime] = None,
-    ) -> List[Dict[str, Any]]:
+    ) -> Dict[str, Any]:
         find_condition = {}
         if authors is not None:
             find_condition["author"] = {"$in": authors}
@@ -37,7 +37,39 @@ class MongoBackend:
             find_condition["genres"] = {"$in": genres}
         if published_year is not None:
             find_condition["published_year"] = published_year
-        cursor = self._client[DB][BOOKS_COLLECTION].find(find_condition, {"_id": 0})
+        return find_condition
+
+    async def get_total_number_of_books(
+        self,
+        authors: Optional[List[str]] = None,
+        genres: Optional[List[str]] = None,
+        published_year: Optional[datetime] = None,
+    ) -> int:
+        return await self._client[DB][BOOKS_COLLECTION].count_documents(
+            self.get_find_condition(
+                authors=authors, genres=genres, published_year=published_year
+            )
+        )
+
+    async def get_all_books(
+        self,
+        skips: int,
+        number_of_documents: int,
+        authors: Optional[List[str]] = None,
+        genres: Optional[List[str]] = None,
+        published_year: Optional[datetime] = None,
+    ) -> List[Dict[str, Any]]:
+        cursor = (
+            self._client[DB][BOOKS_COLLECTION]
+            .find(
+                self.get_find_condition(
+                    authors=authors, genres=genres, published_year=published_year
+                ),
+                {"_id": 0},
+            )
+            .skip(skips)
+            .limit(number_of_documents)
+        )
         return [doc async for doc in cursor]
 
     async def get_all_authors(self) -> List[Dict[str, Any]]:

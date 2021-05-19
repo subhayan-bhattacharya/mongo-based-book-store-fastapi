@@ -2,7 +2,7 @@
 import functools
 import os
 from datetime import datetime
-from typing import List, Optional, Union
+from typing import Any, Dict, List, Optional, Union
 
 from pydantic import BaseModel, validator
 
@@ -43,12 +43,39 @@ class SingleBookResponse(BaseModel):
         )
 
 
-class AllBooksResponse(BaseModel):
+class SingleBookInAllBooksResponse(BaseModel):
     name: str
     author: str
-    link: Optional[str] = None
+    link: str
 
-    def __init__(self, name, author, **data):
-        super().__init__(
-            name=name, author=author, link=f"{base_uri()}book/{data['book_id']}"
-        )
+
+class AllBooksResponse(BaseModel):
+    total_results: int
+    prev_page: Optional[str] = None
+    next_page: Optional[str] = None
+    books: List[SingleBookInAllBooksResponse]
+
+    def __init__(
+        self,
+        total_results: int,
+        books: List[Dict[str, Any]],
+        prev_page: Optional[str] = None,
+        next_page: Optional[str] = None,
+    ):
+        kwargs = {
+            "total_results": total_results,
+            "books": [
+                SingleBookInAllBooksResponse(
+                    name=book.get("name"),
+                    author=book.get("author"),
+                    link=f"{base_uri()}book/{book.get('book_id')}",
+                )
+                for book in books
+            ],
+        }
+        if next_page is not None:
+            kwargs["next_page"] = next_page
+        if prev_page is not None:
+            kwargs["prev_page"] = prev_page
+
+        super().__init__(**kwargs)
