@@ -24,6 +24,10 @@ class Book(BaseModel):
         return datetime.strptime(str(value), "%Y")
 
 
+class SingleMessageResponse(BaseModel):
+    message: str
+
+
 class SingleBookResponse(BaseModel):
     name: str
     author: str

@@ -1,12 +1,14 @@
 """Module for containing the routes for the application."""
+import hashlib
+import json
 import urllib
 import uuid
 from collections import OrderedDict
 from datetime import datetime
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from async_lru import alru_cache
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, Response, status, Header
 
 import application.models as models
 import application.mongo as mongo
@@ -25,6 +27,10 @@ async def get_total_number_of_books(
         genres=list(genres) if genres is not None else None,
         published_year=published_year,
     )
+
+
+def generate_hash_for_book(book: Dict[str, Any]) -> str:
+    return hashlib.sha1(json.dumps(book, sort_keys=True, default=str).encode()).hexdigest()
 
 
 @router.get("/authors")
@@ -111,6 +117,7 @@ async def get_the_list_of_all_books(
 async def add_a_book(book: models.Book, response: Response) -> Dict[str, Any]:
     book_to_insert = book.dict()
     book_to_insert["book_id"] = str(uuid.uuid1())
+    book_to_insert["eTag"] = generate_hash_for_book(book_to_insert)
 
     try:
         await mongo.BACKEND.insert_one_book(data=book_to_insert)
@@ -125,32 +132,50 @@ async def add_a_book(book: models.Book, response: Response) -> Dict[str, Any]:
     return await mongo.BACKEND.get_single_book_by_name(book_to_insert.get("name"))
 
 
-@router.get("/book/{book_id}", response_model=models.SingleBookResponse)
-async def get_a_single_book(book_id: str, response: Response) -> Dict[str, Any]:
+@router.get("/book/{book_id}", response_model=Union[models.SingleBookResponse, models.SingleMessageResponse])
+async def get_a_single_book(book_id: str, response: Response, if_none_match: Optional[str] = Header(None)) -> Union[Dict[str, Any], Response]:
     book = await mongo.BACKEND.get_single_book_by_id(book_id=book_id)
     if book is None:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {"message": "No such book exist!!"}
+    if if_none_match is not None:
+        if book.get('eTag') == if_none_match:
+            return Response(status_code=status.HTTP_304_NOT_MODIFIED)
+    if book.get('eTag') is not None:
+        response.headers["ETag"] = book.get('eTag')
     return book
 
 
-@router.put("/book/{book_id}", response_model=models.SingleBookResponse)
+@router.put("/book/{book_id}", response_model=Union[models.SingleBookResponse, models.SingleMessageResponse])
 async def update_a_book(
-    book_id: str, book: models.Book, response: Response
-) -> Dict[str, Any]:
+    book_id: str, book: models.Book, response: Response, if_match: Optional[str] = Header(None)
+) -> Union[Dict[str, Any], Response]:
     book_in_db = await mongo.BACKEND.get_single_book_by_id(book_id=book_id)
     if book_in_db is None:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {"message": "No such book exist!!"}
-    await mongo.BACKEND.update_one_book(book_id=book_id, data=book.dict())
+
+    book_details_to_insert = book.dict()
+
+    if if_match is not None and book_in_db.get('eTag') is not None:
+        if if_match != book_in_db.get('eTag'):
+            return Response(status_code=status.HTTP_412_PRECONDITION_FAILED)
+
+    book_details_to_insert['eTag'] = generate_hash_for_book(book_details_to_insert)
+    await mongo.BACKEND.update_one_book(book_id=book_id, data=book_details_to_insert)
     return await mongo.BACKEND.get_single_book_by_id(book_id=book_id)
 
 
-@router.delete("/book/{book_id}")
-async def delete_a_book(book_id: str, response: Response) -> Dict[str, Any]:
-    book = await mongo.BACKEND.get_single_book_by_id(book_id=book_id)
-    if book is None:
+@router.delete("/book/{book_id}", response_model=models.SingleMessageResponse)
+async def delete_a_book(book_id: str, response: Response, if_match: Optional[str] = Header(None)) -> Union[Dict[str, Any], Response]:
+    book_in_db = await mongo.BACKEND.get_single_book_by_id(book_id=book_id)
+    if book_in_db is None:
         response.status_code = status.HTTP_400_BAD_REQUEST
         return {"message": "No such book exist!!"}
+
+    if if_match is not None and book_in_db.get('eTag') is not None:
+        if if_match != book_in_db.get('eTag'):
+            return Response(status_code=status.HTTP_412_PRECONDITION_FAILED)
+
     await mongo.BACKEND.delete_one_book(book_id=book_id)
     return {"message": "Book deleted !!"}
