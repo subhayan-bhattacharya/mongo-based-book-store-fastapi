@@ -25,7 +25,7 @@ class Book(BaseModel):
 
 
 class SingleMessageResponse(BaseModel):
-    message: str
+    message: Optional[str]
 
 
 class SingleBookResponse(BaseModel):
