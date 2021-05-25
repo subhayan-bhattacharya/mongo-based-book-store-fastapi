@@ -42,7 +42,7 @@ async def get_all_authors() -> List[Dict[str, Any]]:
 
 
 @router.get("/genres")
-async def get_all_authors() -> List[Dict[str, Any]]:
+async def get_all_genres() -> List[Dict[str, Any]]:
     return [doc["name"] for doc in await mongo.BACKEND.get_all_genres()]
 
 
