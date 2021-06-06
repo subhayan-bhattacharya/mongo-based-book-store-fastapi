@@ -1,8 +1,9 @@
+from datetime import datetime
+
 import pytest
 from fastapi.testclient import TestClient
-from application import app
-from application import mongo
-from datetime import datetime
+
+from application import app, mongo
 
 client = TestClient(app)
 
@@ -10,27 +11,39 @@ all_books = [
     {
         "name": "Tell me your dreams",
         "author": "Sidney Sheldon",
-        "genres": [
-            "Fiction",
-            "Thriller"
-        ],
+        "genres": ["Fiction", "Thriller"],
         "published_year": datetime.strptime("1997", "%Y"),
         "description": "Some description",
         "book_id": "book_1",
-        "eTag": "book_1"
+        "eTag": "book_1",
     },
     {
         "name": "The eye of the needle",
         "author": "Ken Follet",
-        "genres": [
-            "Fiction",
-            "Thriller"
-        ],
+        "genres": ["Fiction", "Thriller"],
         "published_year": datetime.strptime("2000", "%Y"),
         "description": "Some description",
         "book_id": "book_2",
-        "eTag": "book_2"
-    }
+        "eTag": "book_2",
+    },
+    {
+        "name": "Master of the game",
+        "author": "Sidney Sheldon",
+        "genres": ["Fiction", "Thriller"],
+        "published_year": datetime.strptime("1997", "%Y"),
+        "description": "Some description",
+        "book_id": "book_3",
+        "eTag": "book_3",
+    },
+    {
+        "name": "The pillars of the earth",
+        "author": "Ken Follet",
+        "genres": ["Fiction", "Thriller"],
+        "published_year": datetime.strptime("1997", "%Y"),
+        "description": "Some description",
+        "book_id": "book_4",
+        "eTag": "book_4",
+    },
 ]
 
 
@@ -55,10 +68,7 @@ def _check_book_correctness_book_1(response_book):
     assert response_book == {
         "name": "Tell me your dreams",
         "author": "Sidney Sheldon",
-        "genres": [
-            "Fiction",
-            "Thriller"
-        ],
+        "genres": ["Fiction", "Thriller"],
         "published_year": "1997",
         "description": "Some description",
     }
@@ -120,3 +130,28 @@ def test_delete_book_with_wrong_etag(backend):
     assert response.status_code == 412
 
 
+@pytest.mark.get_all_books
+def test_get_all_books_in_db(backend):
+    mongo.BACKEND = backend(books=all_books)
+    response = client.get("/books")
+    assert response.status_code == 200
+    total_results = response.json()["total_results"]
+    assert total_results == 4
+    books_in_first_page = response.json()["books"]
+    assert len(books_in_first_page) == 3
+    assert "next_page" in response.json()
+    assert "page=2" in response.json()["next_page"]
+
+
+@pytest.mark.get_all_books
+def test_get_all_books_in_db_second_page(backend):
+    mongo.BACKEND = backend(books=all_books)
+    response = client.get("/books?page=2")
+    assert response.status_code == 200
+    total_results = response.json()["total_results"]
+    assert total_results == 4
+    books_in_first_page = response.json()["books"]
+    assert len(books_in_first_page) == 1
+    assert "next_page" not in response.json()
+    assert "prev_page" in response.json()
+    assert "page=1" in response.json()["prev_page"]
