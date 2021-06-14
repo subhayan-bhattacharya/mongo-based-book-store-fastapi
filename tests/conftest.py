@@ -69,6 +69,15 @@ class MockedBackend:
             if book["book_id"] == book_id:
                 return book
 
+    async def update_one_book(self, book_id: str, data: Dict[str, Any]):
+        await asyncio.sleep(0.1)  # Just to make the function an async function
+        book_to_change = None
+        for book in self.books:
+            if book["book_id"] == book_id:
+                book_to_change = book
+        book_to_change.update(data)
+        return book_to_change
+
     @staticmethod
     async def delete_one_book(book_id: str):
         await asyncio.sleep(0.1)  # Just to make the function an async function

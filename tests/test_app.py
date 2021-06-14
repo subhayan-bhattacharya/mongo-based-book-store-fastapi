@@ -208,3 +208,63 @@ def test_adding_a_book(backend):
     assert "link" in book_returned
 
 
+@pytest.mark.update_a_book
+def test_update_a_single_book_fails_with_missing_fields(backend):
+    mongo.BACKEND = backend(books=all_books)
+    book_to_update = {
+        "name": "The pillars of the earth",
+        "author": "Ken Follet",
+        "genres": ["Fiction", "Thriller"],
+        "published_year": "1998"
+    }
+    response = client.put("/book/book_4", json=book_to_update, headers={"If-Match": "book_4"})
+    assert response.status_code == 422
+
+
+@pytest.mark.update_a_book
+def test_update_a_single_book_fails_if_etag_is_wrong(backend):
+    mongo.BACKEND = backend(books=all_books)
+    book_to_update = {
+        "name": "The pillars of the earth",
+        "author": "Ken Follet",
+        "genres": ["Fiction", "Thriller"],
+        "description": "Some description",
+        "published_year": "1998"
+    }
+    response = client.put("/book/book_4", json=book_to_update, headers={"If-Match": "book_100"})
+    assert response.status_code == 412
+
+
+@pytest.mark.update_a_book
+def test_update_a_single_book_fails_if_it_does_not_exist(backend):
+    mongo.BACKEND = backend(books=all_books)
+    book_to_update = {
+        "name": "The pillars of the earth",
+        "author": "Ken Follet",
+        "genres": ["Fiction", "Thriller"],
+        "description": "Some description",
+        "published_year": "1998"
+    }
+    response = client.put("/book/book_100", json=book_to_update, headers={"If-Match": "book_100"})
+    assert response.status_code == 400
+
+
+@pytest.mark.update_a_book
+def test_update_a_single_book(backend):
+    mongo.BACKEND = backend(books=all_books)
+    # Just change the description of the book
+    book_to_update = {
+        "name": "The pillars of the earth",
+        "author": "Ken Follet",
+        "genres": ["Fiction", "Thriller"],
+        "description": "Some new description",
+        "published_year": "1998"
+    }
+    response = client.put("/book/book_4", json=book_to_update, headers={"If-Match": "book_4"})
+    assert response.status_code == 200
+    assert response.json()["description"] == book_to_update["description"]
+    # get the book again and check that etag has changed
+    book_get_response = client.get("/book/book_4")
+    assert book_get_response.headers.get("eTag") != "book_4"
+
+
