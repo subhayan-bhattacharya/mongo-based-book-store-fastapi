@@ -127,8 +127,6 @@ async def add_a_book(book: models.Book, response: Response) -> Dict[str, Any]:
     book_to_insert["eTag"] = generate_hash_for_book(book_to_insert)
     book_to_insert["author"] = string.capwords(book_to_insert["author"])
 
-    print(book_to_insert)
-
     try:
         await mongo.BACKEND.insert_one_book(data=book_to_insert)
     except mongo.BookExistsException:

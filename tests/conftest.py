@@ -3,11 +3,14 @@ import itertools
 from typing import Any, Dict, List
 
 import pytest
+from application import mongo
 
 
 class MockedBackend:
     def __init__(self, books: List[Dict[str, Any]]):
         self.books = books
+        self.authors = set()
+        self.genres = set()
 
     async def get_total_number_of_books(self, authors, genres, published_year):
         await asyncio.sleep(0.1)  # Just to make the function an async function
@@ -40,7 +43,7 @@ class MockedBackend:
     ):
         await asyncio.sleep(0.1)  # Just to make the function an async function
         books = self._filter_books(authors, genres, published_year)
-        return books[skips : skips + number_of_documents]
+        return books[skips: skips + number_of_documents]
 
     async def get_all_authors(self):
         await asyncio.sleep(0.1)  # Just to make the function an async function
@@ -70,6 +73,32 @@ class MockedBackend:
     async def delete_one_book(book_id: str):
         await asyncio.sleep(0.1)  # Just to make the function an async function
         pass
+
+    async def insert_authors_in_db(self, author: str):
+        await asyncio.sleep(0.1)  # Just to make the function an async function
+        self.authors.add(author)
+
+    async def get_single_book_by_name(self, name: str):
+        await asyncio.sleep(0.1)  # Just to make the function an async function
+        for book in self.books:
+            if book["name"] == name:
+                return book
+
+    async def insert_genres_in_db(self, genres: List[str]):
+        await asyncio.sleep(0.1)  # Just to make the function an async function
+        for genre in genres:
+            self.genres.add(genre)
+
+    async def insert_one_book(self, data: Dict[str, Any]):
+        await asyncio.sleep(0.1)  # Just to make the function an async function
+        name = data.get("name")
+        for book in self.books:
+            if name == book.get("name"):
+                raise mongo.BookExistsException()
+        self.authors.add(data.get("author"))
+        for genre in data.get("genres"):
+            self.genres.add(genre)
+        self.books.append(data)
 
 
 @pytest.fixture

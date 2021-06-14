@@ -1,3 +1,4 @@
+import string
 from datetime import datetime
 
 import pytest
@@ -155,3 +156,55 @@ def test_get_all_books_in_db_second_page(backend):
     assert "next_page" not in response.json()
     assert "prev_page" in response.json()
     assert "page=1" in response.json()["prev_page"]
+
+
+@pytest.mark.add_a_book
+def test_that_a_book_with_missing_fields_fails_to_add(backend):
+    mongo.BACKEND = backend(books=all_books)
+    book_to_add = {
+        "name": "Test book",
+        "author": "Test author",
+        "genres": ["Fiction", "Thriller"],
+        "published_year": "2000"
+    }
+    response = client.post("/books", json=book_to_add)
+    assert response.status_code == 422
+
+
+@pytest.mark.add_a_book
+def test_that_book_which_exists_cannot_be_added(backend):
+    mongo.BACKEND = backend(books=all_books)
+    book_to_add = {
+        "name": "Tell me your dreams",
+        "author": "Sidney Sheldon",
+        "genres": ["Fiction", "Thriller"],
+        "published_year": "1997",
+        "description": "Some description"
+    }
+    response = client.post("/books", json=book_to_add)
+    assert response.status_code == 400
+    assert response.json() == {"message": "Book Tell me your dreams already exists!!"}
+
+
+@pytest.mark.add_a_book
+def test_adding_a_book(backend):
+    mongo.BACKEND = backend(books=all_books)
+    book_to_add = {
+        "name": "Test book",
+        "author": "Test author",
+        "genres": ["Fiction", "Thriller"],
+        "description": "some description",
+        "published_year": "2000"
+    }
+    response = client.post("/books", json=book_to_add)
+    assert response.status_code == 201
+    book_returned = response.json()
+    for key in book_to_add:
+        if key == "author":
+            assert book_returned[key] == string.capwords(book_to_add[key])
+        else:
+            assert book_returned[key] == book_to_add[key]
+
+    assert "link" in book_returned
+
+
