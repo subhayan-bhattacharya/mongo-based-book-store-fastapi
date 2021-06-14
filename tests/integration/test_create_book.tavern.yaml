@@ -1,0 +1,48 @@
+test_name: Create a new book
+
+stages:
+  - name: Try to create a new book with missing fields
+    request:
+      url: http://localhost:8000/books
+      method: POST
+      json:
+        name: "Tell me your dreams"
+        author: "Sidney Sheldon"
+        genres:
+          - Fiction
+          - Thriller
+        published_year: 1997
+    response:
+      status_code: 422
+  - name: Try to create a new book with correct data
+    request:
+      url: http://localhost:8000/books
+      method: POST
+      json:
+        name: "Tell me your dreams"
+        author: "Sidney Sheldon"
+        genres:
+          - Fiction
+          - Thriller
+        published_year: 1997
+        description: "Some description"
+    response:
+      status_code: 201
+      verify_response_with:
+        function: integration_utils:validate_new_book_response
+        extra_kwargs:
+          inserted_book: "{tavern.request_vars.json}"
+  - name: Try to create the same book twice(only going to work if we have a unique index on name field)
+    request:
+      url: http://localhost:8000/books
+      method: POST
+      json:
+        name: "Tell me your dreams"
+        author: "Sidney Sheldon"
+        genres:
+          - Fiction
+          - Thriller
+        published_year: 1997
+        description: "Some description"
+    response:
+      status_code: 400
