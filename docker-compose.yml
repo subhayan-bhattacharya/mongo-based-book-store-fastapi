@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  db:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+      - ./server_setup.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
+    container_name: server
+  web_app:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    image: mongo-based-fastapi-app
+    depends_on:
+      - db
+    ports:
+      - "8000:8000"
+volumes:
+  mongo_data:
