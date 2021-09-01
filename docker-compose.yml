@@ -6,7 +6,6 @@ services:
     ports:
       - "27017:27017"
     volumes:
-      - mongo_data:/data/db
       - ./server_setup.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
     container_name: server
   web_app:

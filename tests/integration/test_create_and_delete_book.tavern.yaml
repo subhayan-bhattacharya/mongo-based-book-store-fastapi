@@ -1,4 +1,4 @@
-test_name: Create a new book
+test_name: Create a new book and delete the book
 
 stages:
   - name: Try to create a new book with missing fields
@@ -11,7 +11,7 @@ stages:
         genres:
           - Fiction
           - Thriller
-        published_year: 1997
+        published_year: "1997"
     response:
       status_code: 422
   - name: Try to create a new book with correct data
@@ -24,14 +24,17 @@ stages:
         genres:
           - Fiction
           - Thriller
-        published_year: 1997
+        published_year: "1997"
         description: "Some description"
     response:
       status_code: 201
       verify_response_with:
-        function: integration_utils:validate_new_book_response
+        function: integration_utils:validate_create_update_book_response
         extra_kwargs:
           inserted_book: "{tavern.request_vars.json}"
+      save:
+        json:
+          book_link: link
   - name: Try to create the same book twice(only going to work if we have a unique index on name field)
     request:
       url: http://localhost:8000/books
@@ -42,7 +45,13 @@ stages:
         genres:
           - Fiction
           - Thriller
-        published_year: 1997
+        published_year: "1997"
         description: "Some description"
     response:
       status_code: 400
+  - name: Delete the created book
+    request:
+      url: "{book_link}"
+      method: DELETE
+    response:
+      status_code: 200
