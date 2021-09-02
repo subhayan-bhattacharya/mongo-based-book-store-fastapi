@@ -32,7 +32,7 @@ stages:
         description: "Some new description"
     response:
       verify_response_with:
-        function: integration_utils:validate_create_update_book_response
+        function: integration_utils:validate_book_response
         extra_kwargs:
           inserted_book: "{tavern.request_vars.json}"
   - name: Delete the created book

@@ -2,7 +2,7 @@ import string
 import json
 
 
-def validate_create_update_book_response(response, inserted_book):
+def validate_book_response(response, inserted_book):
     response_data = response.json()
     replaced_inserted_data = inserted_book.replace("\'", "\"")
     inserted_data = json.loads(replaced_inserted_data)

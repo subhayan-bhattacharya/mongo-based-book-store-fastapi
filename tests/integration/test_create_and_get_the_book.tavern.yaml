@@ -18,7 +18,6 @@ stages:
       save:
         json:
           book_link: link
-        inserted_book: "{tavern.request_vars.json}"
   - name: Get a non existent book
     request:
       url: http://localhost:8000/book/123
@@ -31,10 +30,6 @@ stages:
       method: GET
     response:
       status_code: 200
-      verify_response_with:
-        function: integration_utils:validate_create_update_book_response
-        extra_kwargs:
-          inserted_book: "{tavern.request_vars.json}"
   - name: Delete the created book
     request:
       url: "{book_link}"
