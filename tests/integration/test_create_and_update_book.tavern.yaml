@@ -6,13 +6,8 @@ stages:
       url: http://localhost:8000/books
       method: POST
       json:
-        name: "Tell me your dreams"
-        author: "Sidney Sheldon"
-        genres:
-          - Fiction
-          - Thriller
-        published_year: "1997"
-        description: "Some description"
+        $ext:
+          function: integration_utils:book_data_to_insert
     response:
       status_code: 201
       save:
@@ -23,13 +18,8 @@ stages:
       url: "{book_link}"
       method: PUT
       json:
-        name: "Tell me your dreams"
-        author: "Sidney Sheldon"
-        genres:
-          - Fiction
-          - Thriller
-        published_year: "1997"
-        description: "Some new description"
+        $ext:
+          function: integration_utils:updated_book_data_to_insert
     response:
       verify_response_with:
         function: integration_utils:validate_book_response

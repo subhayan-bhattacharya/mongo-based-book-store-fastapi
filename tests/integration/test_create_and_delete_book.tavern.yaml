@@ -19,13 +19,8 @@ stages:
       url: http://localhost:8000/books
       method: POST
       json:
-        name: "Tell me your dreams"
-        author: "Sidney Sheldon"
-        genres:
-          - Fiction
-          - Thriller
-        published_year: "1997"
-        description: "Some description"
+        $ext:
+          function: integration_utils:book_data_to_insert
     response:
       status_code: 201
       verify_response_with:
@@ -40,13 +35,8 @@ stages:
       url: http://localhost:8000/books
       method: POST
       json:
-        name: "Tell me your dreams"
-        author: "Sidney Sheldon"
-        genres:
-          - Fiction
-          - Thriller
-        published_year: "1997"
-        description: "Some description"
+        $ext:
+          function: integration_utils:book_data_to_insert
     response:
       status_code: 400
   - name: Delete the created book

@@ -1,5 +1,33 @@
 import string
 import json
+from box import Box
+
+
+def book_data():
+    return {
+        'name': "Tell me your dreams",
+        'author': "Sidney Sheldon",
+        'genres': [
+            'Fiction',
+            'Thriller'
+        ],
+        'published_year': '1997',
+        'description': 'Some description'
+    }
+
+
+def updated_book_data():
+    book = book_data()
+    book['description'] = 'Some new description'
+    return book
+
+
+def book_data_to_insert():
+    return Box(book_data())
+
+
+def updated_book_data_to_insert():
+    return Box(updated_book_data())
 
 
 def validate_book_response(response, inserted_book):
