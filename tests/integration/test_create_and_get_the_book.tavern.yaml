@@ -31,7 +31,7 @@ stages:
     response:
       status_code: 200
       verify_response_with:
-        function: integration_utils:validate_book_response
+        function: integration_test_utils:validate_book_response
         extra_kwargs:
           inserted_book_data: *inserted_book
   - name: Delete the created book

@@ -20,11 +20,11 @@ stages:
       method: POST
       json:
         $ext:
-          function: integration_utils:book_data_to_insert
+          function: integration_test_utils:book_data_to_insert
     response:
       status_code: 201
       verify_response_with:
-        function: integration_utils:validate_book_response
+        function: integration_test_utils:validate_book_response
         extra_kwargs:
           book_data_with_request: "{tavern.request_vars.json}"
       save:
@@ -36,7 +36,7 @@ stages:
       method: POST
       json:
         $ext:
-          function: integration_utils:book_data_to_insert
+          function: integration_test_utils:book_data_to_insert
     response:
       status_code: 400
   - name: Delete the created book
