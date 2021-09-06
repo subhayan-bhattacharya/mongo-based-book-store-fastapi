@@ -3,7 +3,42 @@ import itertools
 from typing import Any, Dict, List
 
 import pytest
+import requests
+
 from application import mongo
+
+
+def check_if_web_app_is_up(ip_address, port):
+    url = f"http://{ip_address}:{port}/books"
+    response = requests.get(url)
+    if response.status_code == 200:
+        return True
+    return False
+
+
+@pytest.fixture(scope='session')
+def docker_web_app(docker_services):
+    docker_services.start('web_app')
+    _ = docker_services.wait_for_service(
+        "web_app",
+        8000,
+        check_server=check_if_web_app_is_up
+    )
+    return None
+
+
+@pytest.fixture(scope='session')
+def docker_db(docker_services):
+    docker_services.start('db')
+    return None
+
+
+@pytest.fixture(scope='session')
+def docker_compose_files(pytestconfig):
+    dir_where_tests_are_run = pytestconfig.invocation_params.dir
+    return [
+        dir_where_tests_are_run.parents[0].joinpath('docker-compose.yml')
+    ]
 
 
 class MockedBackend:
@@ -28,9 +63,8 @@ class MockedBackend:
             book_genres = set(book["genres"])
             if book_genres.intersection(set(genres)):
                 books.append(book)
-        if published_year is not None:
-            if book["published_year"] == published_year:
-                books.append(book)
+        if published_year is not None and book["published_year"] == published_year:
+            books.append(book)
         return books
 
     async def get_all_books(
@@ -81,7 +115,6 @@ class MockedBackend:
     @staticmethod
     async def delete_one_book(book_id: str):
         await asyncio.sleep(0.1)  # Just to make the function an async function
-        pass
 
     async def insert_authors_in_db(self, author: str):
         await asyncio.sleep(0.1)  # Just to make the function an async function
