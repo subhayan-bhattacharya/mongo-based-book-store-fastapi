@@ -5,7 +5,7 @@ stages:
     request:
       url: http://localhost:8000/books
       method: POST
-      json:
+      json: &inserted_book
         name: "Tell me your dreams"
         author: "Sidney Sheldon"
         genres:
@@ -30,6 +30,10 @@ stages:
       method: GET
     response:
       status_code: 200
+      verify_response_with:
+        function: integration_utils:validate_book_response
+        extra_kwargs:
+          inserted_book_data: *inserted_book
   - name: Delete the created book
     request:
       url: "{book_link}"

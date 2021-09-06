@@ -26,7 +26,7 @@ stages:
       verify_response_with:
         function: integration_utils:validate_book_response
         extra_kwargs:
-          inserted_book: "{tavern.request_vars.json}"
+          book_data_with_request: "{tavern.request_vars.json}"
       save:
         json:
           book_link: link
