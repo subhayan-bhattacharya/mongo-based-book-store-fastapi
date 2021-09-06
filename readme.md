@@ -6,8 +6,7 @@ We can use `docker-compose up` to get the service up and running
 
 
 # Running tests
-For running the integration tests the only prerequisite is to run the command : `docker-compose up`
-Then we can just run the below set of commands:
+To run tests the below commands should suffice:
 `pip install -r requirements/integration.txt`
 `pip install -r requirements/tests.txt`
 `cd tests`

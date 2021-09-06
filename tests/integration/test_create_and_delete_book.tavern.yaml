@@ -1,5 +1,11 @@
 test_name: Create a new book and delete the book
 
+marks:
+  - usefixtures:
+      - docker_compose_files
+      - docker_web_app
+      - docker_db
+
 stages:
   - name: Try to create a new book with missing fields
     request:
