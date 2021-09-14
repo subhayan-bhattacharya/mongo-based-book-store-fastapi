@@ -19,14 +19,37 @@ stages:
       save:
         json:
           book_link: link
-  - name: Update a book
+  - name: Get the book created
+    request:
+      url: "{book_link}"
+      method: GET
+    response:
+      status_code: 200
+      save:
+        headers:
+          etag: eTag
+  - name: Try to update the book with wrong etag
     request:
       url: "{book_link}"
       method: PUT
+      headers:
+        If-Match: 'wrong etag'
       json:
         $ext:
           function: integration_test_utils:updated_book_data_to_insert
     response:
+      status_code: 412
+  - name: Update a book with correct etag
+    request:
+      url: "{book_link}"
+      method: PUT
+      headers:
+        If-Match: '{etag}'
+      json:
+        $ext:
+          function: integration_test_utils:updated_book_data_to_insert
+    response:
+      status_code: 200
       verify_response_with:
         function: integration_test_utils:validate_book_response
         extra_kwargs:

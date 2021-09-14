@@ -1,0 +1,161 @@
+test_name: Create many books and test getting authors and tags
+
+marks:
+  - usefixtures:
+      - docker_compose_files
+      - docker_web_app
+      - docker_db
+
+stages:
+  - name: Create first book
+    request:
+      url: http://localhost:8000/books
+      method: POST
+      json: &first_book
+        name: "Tell me your dreams"
+        author: "Sidney Sheldon"
+        genres:
+          - Fiction
+          - Thriller
+        published_year: "1997"
+        description: "First book"
+    response:
+      status_code: 201
+      save:
+        json:
+          first_book_link: link
+  - name: Create second book
+    request:
+      url: http://localhost:8000/books
+      method: POST
+      json: &second_book
+        name: "Eye of the needle"
+        author: "Ken Follet"
+        genres:
+          - Fiction
+          - Thriller
+        published_year: "1978"
+        description: "Second book"
+    response:
+      status_code: 201
+      save:
+        json:
+          second_book_link: link
+  - name: Create third book
+    request:
+      url: http://localhost:8000/books
+      method: POST
+      json: &third_book
+        name: "A brief history of time"
+        author: "Stephen Hawkings"
+        genres:
+          - Science
+        published_year: "1988"
+        description: "Third book"
+    response:
+      status_code: 201
+      save:
+        json:
+          third_book_link: link
+  - name: Create fourth book
+    request:
+      url: http://localhost:8000/books
+      method: POST
+      json: &fourth_book
+        name: "Best kept secret"
+        author: "Jeffrey Archer"
+        genres:
+          - Fiction
+          - Thriller
+        published_year: "2013"
+        description: "Fourth book"
+    response:
+      status_code: 201
+      save:
+        json:
+          fourth_book_link: link
+  - name: Get all the authors
+    request:
+      url: http://localhost:8000/authors
+      method: GET
+    response:
+      status_code: 200
+      verify_response_with:
+        function: integration_test_utils:validate_authors_response
+        extra_kwargs:
+          all_books_inserted:
+            - *first_book
+            - *second_book
+            - *third_book
+            - *fourth_book
+  - name: Get all the genres
+    request:
+      url: http://localhost:8000/genres
+      method: GET
+    response:
+      status_code: 200
+      verify_response_with:
+        function: integration_test_utils:validate_genres_response
+        extra_kwargs:
+          all_books_inserted:
+            - *first_book
+            - *second_book
+            - *third_book
+            - *fourth_book
+  - name: Get all books(first page)
+    request:
+      url: http://localhost:8000/books
+      method: GET
+    response:
+      status_code: 200
+      save:
+        json:
+          next_page_link: next_page
+          books_returned: books
+      verify_response_with:
+        function: integration_test_utils:validate_all_books_first_page_response
+        extra_kwargs:
+          all_books_inserted:
+            - *first_book
+            - *second_book
+            - *third_book
+            - *fourth_book
+  - name: Get all books(second page)
+    request:
+      url: "{next_page_link}"
+      method: GET
+    response:
+      status_code: 200
+      verify_response_with:
+        function: integration_test_utils:validate_all_books_second_page_response
+        extra_kwargs:
+          all_books_inserted:
+            - *first_book
+            - *second_book
+            - *third_book
+            - *fourth_book
+          books_returned_in_prev_request: "{books_returned}"
+  - name: Delete the first book
+    request:
+      url: "{first_book_link}"
+      method: DELETE
+    response:
+      status_code: 200
+  - name: Delete the second book
+    request:
+      url: "{second_book_link}"
+      method: DELETE
+    response:
+      status_code: 200
+  - name: Delete the third book
+    request:
+      url: "{third_book_link}"
+      method: DELETE
+    response:
+      status_code: 200
+  - name: Delete the fourth book
+    request:
+      url: "{fourth_book_link}"
+      method: DELETE
+    response:
+      status_code: 200

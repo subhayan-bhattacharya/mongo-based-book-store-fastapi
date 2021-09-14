@@ -1,3 +1,4 @@
 tavern
 python-box
 lovely-pytest-docker
+allure-pytest
