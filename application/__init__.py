@@ -1,5 +1,4 @@
 """Main module for the fastapi app."""
-import os
 import pathlib
 
 from dotenv import load_dotenv

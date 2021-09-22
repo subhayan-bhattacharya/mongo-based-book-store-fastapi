@@ -1,0 +1,76 @@
+test_name: Create a new book and get the book
+
+marks:
+  - usefixtures:
+      - docker_compose_files
+      - docker_web_app
+      - docker_db
+
+stages:
+  - name: Create a book
+    request:
+      url: http://localhost:8000/books
+      method: POST
+      json:
+        name: "Tell me your dreams"
+        author: "Sidney Sheldon"
+        genres:
+          - Fiction
+          - Thriller
+        published_year: "1997"
+        description: "Some description"
+    response:
+      status_code: 201
+      save:
+        json:
+          book_link: link
+  - name: Get the same book
+    request:
+      url: '{book_link}'
+      method: GET
+    response:
+      status_code: 200
+      save:
+        headers:
+          etag: eTag
+  - name: Get the same book again with etag
+    request:
+      url: '{book_link}'
+      method: GET
+      headers:
+        If-None-Match: '{etag}'
+    response:
+      status_code: 304
+  - name: Update the inserted book
+    request:
+      url: '{book_link}'
+      method: PUT
+      json: &updated_book
+        name: "Tell me your dreams"
+        author: "Sidney Sheldon"
+        genres:
+          - Fiction
+          - Thriller
+        published_year: "1997"
+        description: "Updated description"
+    response:
+      status_code: 200
+  - name: Try to get the book with the old etag
+    request:
+      url: '{book_link}'
+      method: GET
+      headers:
+        If-None-Match: '{etag}'
+    response:
+      status_code: 200
+      verify_response_with:
+        function: integration_test_utils:validate_book_response
+        extra_kwargs:
+          inserted_book_data: *updated_book
+  - name: Delete the created book
+    request:
+      url: "{book_link}"
+      method: DELETE
+    response:
+      status_code: 200
+

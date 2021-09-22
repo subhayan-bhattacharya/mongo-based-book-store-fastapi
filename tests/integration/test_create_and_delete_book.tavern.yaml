@@ -45,9 +45,28 @@ stages:
           function: integration_test_utils:book_data_to_insert
     response:
       status_code: 400
+  - name: Get the created book
+    request:
+      url: "{book_link}"
+      method: GET
+    response:
+      status_code: 200
+      save:
+        headers:
+          etag: eTag
+  - name: Delete the created book with wrong etag
+    request:
+      url: "{book_link}"
+      method: DELETE
+      headers:
+        If-Match: 'wrong etag'
+    response:
+      status_code: 412
   - name: Delete the created book
     request:
       url: "{book_link}"
       method: DELETE
+      headers:
+        If-Match: '{etag}'
     response:
       status_code: 200

@@ -1,3 +1,4 @@
+import itertools
 import string
 import json
 from box import Box
@@ -50,3 +51,37 @@ def validate_book_response(response, book_data_with_request=None, inserted_book_
     _validate_inserted_with_retrieved(inserted=inserted_data, response=response_data)
     assert "link" in response_data
 
+
+def validate_authors_response(response, all_books_inserted):
+    response_data = response.json()
+    assert isinstance(response_data, list)
+    all_authors_inserted = list(set([book["author"] for book in all_books_inserted]))
+    assert sorted(response_data) == sorted(all_authors_inserted)
+
+
+def validate_genres_response(response, all_books_inserted):
+    response_data = response.json()
+    assert isinstance(response_data, list)
+    all_authors_inserted = list(
+        set(
+            itertools.chain.from_iterable([book["genres"] for book in all_books_inserted])
+        )
+    )
+    assert sorted(response_data) == sorted(all_authors_inserted)
+
+
+def validate_all_books_first_page_response(response, all_books_inserted):
+    response_data = response.json()
+    assert 'next_page' in response_data
+    assert 'total_results' in response_data
+    assert response_data['total_results'] == len(all_books_inserted)
+
+
+def validate_all_books_second_page_response(response, all_books_inserted, books_returned_in_prev_request):
+    response_data = response.json()
+    replaced_books_returned_prev_request = books_returned_in_prev_request.replace("\'", "\"")
+    books_in_prev_response = json.loads(replaced_books_returned_prev_request)
+    if len(all_books_inserted) - len(books_in_prev_response) < 3:
+        assert "next_page" not in response_data
+        assert "prev_page" in response_data
+        assert len(response_data["books"]) == len(all_books_inserted) - len(books_in_prev_response)
