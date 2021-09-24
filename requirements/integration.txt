@@ -1,3 +1,2 @@
 tavern
 python-box
-lovely-pytest-docker

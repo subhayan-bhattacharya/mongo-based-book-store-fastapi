@@ -1,10 +1,5 @@
 test_name: Create a new book and update the book details
 
-marks:
-  - usefixtures:
-      - docker_compose_files
-      - docker_web_app
-      - docker_db
 
 stages:
   - name: Create a book

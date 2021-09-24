@@ -40,4 +40,7 @@ def tests_integration(session):
         "requirements/requirements.txt",
     )
     os.chdir("tests")
+    session.run("docker-compose", "up", "-d")
+    session.run("sleep", "30")
     session.run("python", "-m", "pytest", "-s", "-v", "integration")
+    session.run("docker-compose", "down")
