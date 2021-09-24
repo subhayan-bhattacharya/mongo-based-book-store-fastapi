@@ -18,7 +18,19 @@ def flake8(session):
 
 
 @nox.session
-def tests(session):
+def tests_unit(session):
+    session.install(
+        "-r",
+        "requirements/tests.txt",
+        "-r",
+        "requirements/requirements.txt",
+    )
+    os.chdir("tests")
+    session.run("python", "-m", "pytest", "-s", "-v", "unit")
+
+
+@nox.session
+def tests_integration(session):
     session.install(
         "-r",
         "requirements/integration.txt",
@@ -28,4 +40,4 @@ def tests(session):
         "requirements/requirements.txt",
     )
     os.chdir("tests")
-    session.run("python", "-m", "pytest", "-s", "-v")
+    session.run("python", "-m", "pytest", "-s", "-v", "integration")

@@ -6,4 +6,9 @@ python:
 install:
   - pip install nox
 script:
-  - nox
+  - nox -s flake8
+  - nox -s tests_unit
+  - docker-compose up -d
+  - sleep 30
+  - docker ps
+  - docker-compose down
