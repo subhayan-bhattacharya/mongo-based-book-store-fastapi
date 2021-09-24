@@ -94,7 +94,8 @@ async def get_the_list_of_all_books(
             prev_page_url = f"{models.base_uri()}books?page={prev_page}"
         else:
             prev_page_url = (
-                f"{models.base_uri()}books?{urllib.parse.urlencode(params).replace('.', ',')}"
+                f"{models.base_uri()}books?"
+                f"{urllib.parse.urlencode(params).replace('.', ',')}"
                 f"&page={prev_page}"
             )
 
@@ -104,7 +105,8 @@ async def get_the_list_of_all_books(
             next_page_url = f"{models.base_uri()}books?page={next_page}"
         else:
             next_page_url = (
-                f"{models.base_uri()}books?{urllib.parse.urlencode(params).replace('.', ',')}"
+                f"{models.base_uri()}books?"
+                f"{urllib.parse.urlencode(params).replace('.', ',')}"
                 f"&page={next_page}"
             )
 

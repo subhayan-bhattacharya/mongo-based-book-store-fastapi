@@ -165,7 +165,7 @@ def test_that_a_book_with_missing_fields_fails_to_add(backend):
         "name": "Test book",
         "author": "Test author",
         "genres": ["Fiction", "Thriller"],
-        "published_year": "2000"
+        "published_year": "2000",
     }
     response = client.post("/books", json=book_to_add)
     assert response.status_code == 422
@@ -179,7 +179,7 @@ def test_that_book_which_exists_cannot_be_added(backend):
         "author": "Sidney Sheldon",
         "genres": ["Fiction", "Thriller"],
         "published_year": "1997",
-        "description": "Some description"
+        "description": "Some description",
     }
     response = client.post("/books", json=book_to_add)
     assert response.status_code == 400
@@ -194,7 +194,7 @@ def test_adding_a_book(backend):
         "author": "Test author",
         "genres": ["Fiction", "Thriller"],
         "description": "some description",
-        "published_year": "2000"
+        "published_year": "2000",
     }
     response = client.post("/books", json=book_to_add)
     assert response.status_code == 201
@@ -215,9 +215,11 @@ def test_update_a_single_book_fails_with_missing_fields(backend):
         "name": "The pillars of the earth",
         "author": "Ken Follet",
         "genres": ["Fiction", "Thriller"],
-        "published_year": "1998"
+        "published_year": "1998",
     }
-    response = client.put("/book/book_4", json=book_to_update, headers={"If-Match": "book_4"})
+    response = client.put(
+        "/book/book_4", json=book_to_update, headers={"If-Match": "book_4"}
+    )
     assert response.status_code == 422
 
 
@@ -229,9 +231,11 @@ def test_update_a_single_book_fails_if_etag_is_wrong(backend):
         "author": "Ken Follet",
         "genres": ["Fiction", "Thriller"],
         "description": "Some description",
-        "published_year": "1998"
+        "published_year": "1998",
     }
-    response = client.put("/book/book_4", json=book_to_update, headers={"If-Match": "book_100"})
+    response = client.put(
+        "/book/book_4", json=book_to_update, headers={"If-Match": "book_100"}
+    )
     assert response.status_code == 412
 
 
@@ -243,9 +247,11 @@ def test_update_a_single_book_fails_if_it_does_not_exist(backend):
         "author": "Ken Follet",
         "genres": ["Fiction", "Thriller"],
         "description": "Some description",
-        "published_year": "1998"
+        "published_year": "1998",
     }
-    response = client.put("/book/book_100", json=book_to_update, headers={"If-Match": "book_100"})
+    response = client.put(
+        "/book/book_100", json=book_to_update, headers={"If-Match": "book_100"}
+    )
     assert response.status_code == 400
 
 
@@ -258,13 +264,13 @@ def test_update_a_single_book(backend):
         "author": "Ken Follet",
         "genres": ["Fiction", "Thriller"],
         "description": "Some new description",
-        "published_year": "1998"
+        "published_year": "1998",
     }
-    response = client.put("/book/book_4", json=book_to_update, headers={"If-Match": "book_4"})
+    response = client.put(
+        "/book/book_4", json=book_to_update, headers={"If-Match": "book_4"}
+    )
     assert response.status_code == 200
     assert response.json()["description"] == book_to_update["description"]
     # get the book again and check that etag has changed
     book_get_response = client.get("/book/book_4")
     assert book_get_response.headers.get("eTag") != "book_4"
-
-

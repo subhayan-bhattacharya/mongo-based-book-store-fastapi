@@ -16,29 +16,25 @@ def check_if_web_app_is_up(ip_address, port):
     return False
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def docker_web_app(docker_services):
-    docker_services.start('web_app')
+    docker_services.start("web_app")
     _ = docker_services.wait_for_service(
-        "web_app",
-        8000,
-        check_server=check_if_web_app_is_up
+        "web_app", 8000, check_server=check_if_web_app_is_up
     )
     return None
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def docker_db(docker_services):
-    docker_services.start('db')
+    docker_services.start("db")
     return None
 
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope="session")
 def docker_compose_files(pytestconfig):
     dir_where_tests_are_run = pytestconfig.invocation_params.dir
-    return [
-        dir_where_tests_are_run.parents[0].joinpath('docker-compose.yml')
-    ]
+    return [dir_where_tests_are_run.parents[0].joinpath("docker-compose.yml")]
 
 
 class MockedBackend:
@@ -77,7 +73,7 @@ class MockedBackend:
     ):
         await asyncio.sleep(0.1)  # Just to make the function an async function
         books = self._filter_books(authors, genres, published_year)
-        return books[skips: skips + number_of_documents]
+        return books[skips : skips + number_of_documents]
 
     async def get_all_authors(self):
         await asyncio.sleep(0.1)  # Just to make the function an async function
