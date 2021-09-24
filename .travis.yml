@@ -8,7 +8,4 @@ install:
 script:
   - nox -s flake8
   - nox -s tests_unit
-  - docker-compose up -d
-  - sleep 30
-  - docker ps
-  - docker-compose down
+  - nox -s tests_integration
