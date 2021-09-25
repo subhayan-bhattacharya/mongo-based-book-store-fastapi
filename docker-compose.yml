@@ -7,7 +7,6 @@ services:
       - "27017:27017"
     volumes:
       - ./server_setup.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-    container_name: server
   web_app:
     build:
       dockerfile: Dockerfile
@@ -17,6 +16,5 @@ services:
       - db
     ports:
       - "8000:8000"
-    container_name: web_application
 volumes:
   mongo_data:

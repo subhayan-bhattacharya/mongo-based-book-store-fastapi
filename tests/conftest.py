@@ -1,5 +1,6 @@
 import asyncio
 import itertools
+import os
 from typing import Any, Dict, List
 
 import pytest
@@ -10,6 +11,7 @@ from application import mongo
 
 def check_if_web_app_is_up(ip_address, port):
     url = f"http://{ip_address}:{port}/books"
+    print(f"Checking through the url : {url}")
     response = requests.get(url)
     if response.status_code == 200:
         return True
@@ -36,9 +38,15 @@ def docker_db(docker_services):
 @pytest.fixture(scope='session')
 def docker_compose_files(pytestconfig):
     dir_where_tests_are_run = pytestconfig.invocation_params.dir
+    project_dir = dir_where_tests_are_run.parents[0]
     return [
-        dir_where_tests_are_run.parents[0].joinpath('docker-compose.yml')
+        os.path.join(str(project_dir), 'docker-compose.yml')
     ]
+
+
+@pytest.fixture(scope='session')
+def docker_services_project_name(pytestconfig):
+    return os.path.basename(pytestconfig.invocation_params.dir.parents[0])
 
 
 class MockedBackend:
