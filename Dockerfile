@@ -1,10 +1,14 @@
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.8
 
+RUN pip install poetry
+
+COPY poetry.lock pyproject.toml /app/
+
+RUN poetry config virtualenvs.create false && poetry install
+
 COPY . /app
 
 WORKDIR /app
 
-RUN pip install -r ./requirements/requirements.txt
-
-CMD uvicorn --host 0.0.0.0 application:app --reload
+CMD uvicorn --host 0.0.0.0 application:app
 

@@ -12,7 +12,6 @@ services:
     build:
       dockerfile: Dockerfile
       context: .
-    image: mongo-based-fastapi-app
     depends_on:
       - db
     ports:

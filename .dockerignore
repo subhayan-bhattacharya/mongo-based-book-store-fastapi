@@ -1,4 +1,5 @@
-tests/
-.*_cache/
-htmlcov/
-.dockerignore
+.git
+.nox
+.git
+tests
+.coverage

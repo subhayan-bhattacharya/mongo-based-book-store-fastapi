@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "mongo-based-book-store-fastapi"
+version = "0.1.0"
+description = "Simple book store restapi based on fastapi"
+authors = ["Subhayan Bhattacharya <subhayan.here@gmail.com>"]
+
+[tool.poetry.dependencies]
+python = "^3.8"
+fastapi = "^0.70.0"
+uvicorn = "^0.15.0"
+motor = "^2.5.1"
+async_lru = "^1.0.2"
+python-dotenv = "^0.19.1"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.5"
+requests = "^2.26.0"
+python-dotenv = "^0.19.1"
+tavern = "^1.16.2"
+python-box = "^5.4.1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"

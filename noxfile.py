@@ -19,28 +19,18 @@ def flake8(session):
 
 @nox.session
 def tests_unit(session):
-    session.install(
-        "-r",
-        "requirements/tests.txt",
-        "-r",
-        "requirements/requirements.txt",
-    )
+    session.install("poetry")
+    session.run("poetry", "install")
     os.chdir("tests")
     session.run("python", "-m", "pytest", "-s", "-v", "unit")
 
 
 @nox.session
 def tests_integration(session):
-    session.install(
-        "-r",
-        "requirements/integration.txt",
-        "-r",
-        "requirements/tests.txt",
-        "-r",
-        "requirements/requirements.txt",
-    )
+    session.install("poetry")
+    session.run("poetry", "install")
     os.chdir("tests")
-    session.run("docker-compose", "up", "-d")
-    session.run("sleep", "30")
+    session.run("docker-compose", "up", "-d", external=True)
+    session.run("sleep", "30", external=True)
     session.run("python", "-m", "pytest", "-s", "-v", "integration")
-    session.run("docker-compose", "down")
+    session.run("docker-compose", "down", external=True)
